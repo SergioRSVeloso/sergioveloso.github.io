@@ -3,218 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sérgio R. S. Veloso | Researcher</title>
-<meta name="description" content="Sérgio Rafael da Silva Veloso – researcher in soft materials, nanomaterials, drug delivery and photocatalysis. CINBIO, University of Vigo.">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #fbfaf7; --surface: #ffffff; --text: #1f2328; --muted: #5b636d;
-    --accent: #0f6e6e; --accent-soft: #e3f1ef; --line: #e6e2da;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #14181b; --surface: #1b2024; --text: #e7e9ea; --muted: #a2abb3;
-      --accent: #5cc1b8; --accent-soft: #1f3331; --line: #2c3338;
-    }
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: "Inter", system-ui, sans-serif; line-height: 1.65; font-size: 16px;
-  }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; line-height: 1.25; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
-
-  /* Navigation */
-  nav {
-    position: sticky; top: 0; z-index: 10;
-    background: color-mix(in srgb, var(--bg) 92%, transparent);
-    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
-  }
-  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 58px; }
-  nav .brand { font-weight: 600; color: var(--text); }
-  nav ul { list-style: none; display: flex; gap: 22px; margin: 0; padding: 0; }
-  nav ul a { color: var(--muted); font-size: 0.93rem; }
-  nav ul a:hover { color: var(--accent); text-decoration: none; }
-  @media (max-width: 680px) { nav ul { display: none; } }
-
-  /* Hero */
-  header.hero { padding: 64px 0 40px; }
-  .hero-grid { display: grid; grid-template-columns: 170px 1fr; gap: 36px; align-items: center; }
-  .photo {
-    width: 170px; height: 170px; border-radius: 50%; object-fit: cover;
-    background: var(--accent-soft); border: 3px solid var(--surface);
-    box-shadow: 0 4px 18px rgba(0,0,0,.08);
-    display: flex; align-items: center; justify-content: center;
-    font-family: "Source Serif 4", serif; font-size: 3rem; color: var(--accent);
-  }
-  .hero h1 { font-size: 2.3rem; margin: 0 0 6px; }
-  .hero .role { color: var(--muted); margin: 0 0 16px; font-size: 1.05rem; }
-  .links { display: flex; flex-wrap: wrap; gap: 10px; }
-  .btn {
-    display: inline-block; padding: 7px 15px; border-radius: 999px; font-size: 0.9rem;
-    border: 1px solid var(--line); background: var(--surface); color: var(--text);
-  }
-  .btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
-  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn.primary:hover { color: #fff; opacity: .9; }
-  @media (max-width: 680px) {
-    .hero-grid { grid-template-columns: 1fr; text-align: center; }
-    .photo { margin: 0 auto; }
-    .links { justify-content: center; }
-    .hero h1 { font-size: 1.9rem; }
-  }
-
-  /* Sections */
-  section { padding: 44px 0; border-top: 1px solid var(--line); }
-  section h2 { font-size: 1.65rem; margin: 0 0 22px; }
-  .lead { font-size: 1.05rem; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px;
-  }
-  .card h3 { margin: 0 0 8px; font-size: 1.15rem; }
-  .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-  .tag { background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; padding: 3px 9px; border-radius: 999px; }
-
-  /* Timeline */
-  .timeline { list-style: none; margin: 0; padding: 0; }
-  .timeline li { display: grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 14px 0; border-bottom: 1px dashed var(--line); }
-  .timeline li:last-child { border-bottom: none; }
-  .timeline .when { color: var(--accent); font-weight: 600; font-size: 0.92rem; }
-  .timeline .what strong { display: block; }
-  .timeline .what span { color: var(--muted); font-size: 0.93rem; }
-  @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 2px; } }
-
-  .pubs { padding-left: 20px; margin: 0 0 20px; }
-  .pubs li { margin-bottom: 12px; }
-  .pubs .venue { color: var(--muted); font-size: 0.92rem; }
-  .note { color: var(--muted); font-size: 0.9rem; }
-
-  footer { padding: 28px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; text-align: center; }
-</style>
+<title>Sérgio Veloso | Soft Matter & Nanomaterials</title>
+<meta name="description" content="Sérgio R. S. Veloso — researcher in soft materials, nanomaterials, drug delivery and photocatalysis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<nav>
+<nav class="nav">
   <div class="wrap">
-    <a href="#top" class="brand">Sérgio R. S. Veloso</a>
+    <a href="index.html" class="brand"><span class="brand-mark">SV</span>Sérgio Veloso</a>
+    <button class="menu-btn" aria-label="Menu">☰</button>
     <ul>
-      <li><a href="#about">About</a></li>
-      <li><a href="#research">Research</a></li>
-      <li><a href="#publications">Publications</a></li>
-      <li><a href="#cv">Career</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="research.html">Research</a></li>
+      <li><a href="publications.html">Publications</a></li>
+      <li><a href="team.html">Team</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="contact.html">Contact</a></li>
     </ul>
   </div>
 </nav>
-
-<header class="hero" id="top">
-  <div class="wrap hero-grid">
-    <!-- PHOTO: upload a file named photo.jpg next to index.html, then replace the next line with:
-         <img class="photo" src="photo.jpg" alt="Sérgio Veloso"> -->
-    <div class="photo" aria-hidden="true">SV</div>
-    <div>
-      <h1>Sérgio Rafael da Silva Veloso</h1>
-      <p class="role">Postdoctoral Researcher · CINBIO, University of Vigo<br>Soft materials · Nanomaterials · Drug delivery · Photocatalysis</p>
-      <div class="links">
-        <a class="btn primary" href="https://scholar.google.com/citations?user=RqlixlYAAAAJ&hl=en" target="_blank" rel="noopener">Google Scholar</a>
-        <!-- Replace the # with your real links (or delete lines you don't need) -->
-        <a class="btn" href="#" target="_blank" rel="noopener">ORCID</a>
-        <a class="btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
-        <a class="btn" href="#contact">Email</a>
-      </div>
-    </div>
-  </div>
-</header>
-
 <main>
-<section id="about">
-  <div class="wrap">
-    <h2>About</h2>
-    <p class="lead">I am a researcher trained in biochemistry, biophysics and bionanosystems, and physics. My work brings together soft matter and nanomaterials to design stimuli-responsive systems for drug delivery, theranostics and light-driven catalysis.</p>
-    <p>I obtained my PhD in Physics through the MAP-fis doctoral programme at the Centre of Physics of the University of Minho (Portugal). I have since worked as a postdoctoral researcher at CINBIO, University of Vigo (Spain), where I currently hold a Xunta de Galicia postdoctoral fellowship, and carried out a postdoctoral stay at the Institute of Chemistry of the Hebrew University of Jerusalem (Israel) in the group of Prof. Itamar Willner.</p>
-    <p class="note">Languages: Portuguese · English · Spanish · Galician</p>
-  </div>
-</section>
 
-<section id="research">
+<section class="hero">
+  <canvas id="molecules" aria-hidden="true"></canvas>
   <div class="wrap">
-    <h2>Research</h2>
-    <div class="cards">
-      <div class="card">
-        <h3>Soft matter for drug delivery &amp; theranostics</h3>
-        <p>Magnetic and plasmonic lipogels, self-assembled peptide hydrogels, polyelectrolyte gels and hybrid lipid–polymer nanoparticles that release drugs in response to pH, heat, alternating magnetic fields or near-infrared light.</p>
-        <div class="tags"><span class="tag">Peptide hydrogels</span><span class="tag">Lipogels</span><span class="tag">Magnetic NPs</span><span class="tag">Plasmonic NPs</span><span class="tag">3D spheroids</span></div>
-      </div>
-      <div class="card">
-        <h3>Photocatalytic microcapsules</h3>
-        <p>Fe³⁺-crosslinked carboxymethyl-cellulose microcapsules, including molecularly imprinted and metal-loaded capsules, coupled to photosystems and flavins to drive light-powered redox reactions.</p>
-        <div class="tags"><span class="tag">Hydrogel microcapsules</span><span class="tag">Photosystem I</span><span class="tag">Flavins</span><span class="tag">Nitrate-to-ammonia</span></div>
-      </div>
-      <div class="card">
-        <h3>Modelling drug release</h3>
-        <p>Reaction–diffusion models of release from slabs and spheres, solved by eigenfunction expansion, Laplace and asymptotic methods, linking material parameters to release kinetics and to empirical models (Weibull, Korsmeyer–Peppas, Higuchi).</p>
-        <div class="tags"><span class="tag">Reaction–diffusion</span><span class="tag">Release kinetics</span><span class="tag">Mathematical modelling</span></div>
-      </div>
-      <div class="card">
-        <h3>Drug-eluting contact lenses &amp; nanocarriers</h3>
-        <p>Polymeric, lipid, protein and mesoporous-silica carriers, and their integration into ophthalmic devices for sustained local delivery.</p>
-        <div class="tags"><span class="tag">PLGA–PEG</span><span class="tag">Chitosan</span><span class="tag">BSA/HA</span><span class="tag">Contact lenses</span></div>
-      </div>
+    <div class="eyebrow">Researcher · Physics · Biophysics · Biochemistry</div>
+    <h1>Designing <em>smart soft materials</em> for medicine and light-driven chemistry</h1>
+    <p class="sub">I am Sérgio Veloso, a postdoctoral researcher at CINBIO, University of Vigo, working at the interface of soft matter, nanomaterials, drug delivery and photocatalysis.</p>
+    <div class="actions">
+      <a class="btn solid" href="research.html">Explore my research</a>
+      <a class="btn" href="https://scholar.google.com/citations?user=RqlixlYAAAAJ&hl=en" target="_blank" rel="noopener">Google Scholar</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><strong>PhD</strong><span>Physics · U. Minho</span></div>
+      <div class="stat"><strong>3</strong><span>Countries · PT · ES · IL</span></div>
+      <div class="stat"><strong>4</strong><span>Languages</span></div>
     </div>
   </div>
 </section>
-
-<section id="publications">
-  <div class="wrap">
-    <h2>Publications</h2>
-    <p>The complete and up-to-date list of my publications is available on
-      <a href="https://scholar.google.com/citations?user=RqlixlYAAAAJ&hl=en" target="_blank" rel="noopener">Google Scholar</a>.</p>
-    <h3>Selected work</h3>
-    <!-- Replace these with full references (authors, title, journal, year, DOI link) -->
-    <ol class="pubs">
-      <li>Enzyme- or Au-nanoparticle-loaded Fe³⁺-crosslinked carboxymethyl-cellulose hydrogel microcapsules. <span class="venue"><em>ACS Applied Materials &amp; Interfaces</em>, in press.</span></li>
-      <li>Review on CNC gels. <span class="venue">2023.</span></li>
-      <li>Injectable dehydropeptide-based magnetic–plasmonic lipogels. <span class="venue">Journal, year.</span></li>
-      <li>Chitosan–alginate magnetic gels for 5-fluorouracil delivery. <span class="venue">Journal, year.</span></li>
-      <li>Fluorescent cobalt-doped manganese ferrite nanoparticles. <span class="venue">Journal, year.</span></li>
-      <li>Liposomes for drug delivery (book chapter). <span class="venue">Book, year.</span></li>
-    </ol>
+<section class="block"><div class="wrap">
+  <div class="eyebrow">About</div>
+  <h2>From biochemistry to physics, and back to the clinic</h2>
+  <div class="grid">
+    <div class="card reveal"><p>Trained in biochemistry, biophysics and bionanosystems, and physics, I design stimuli-responsive gels, nanoparticles and hybrid carriers that release drugs on demand, in response to pH, heat, magnetic fields or near-infrared light.</p></div>
+    <div class="card reveal"><p>I hold a Xunta de Galicia postdoctoral fellowship at CINBIO, University of Vigo, after a PhD at the University of Minho and a postdoctoral stay with Prof. Itamar Willner at the Hebrew University of Jerusalem.</p></div>
   </div>
-</section>
-
-<section id="cv">
-  <div class="wrap">
-    <h2>Career &amp; Education</h2>
-    <ul class="timeline">
-      <li><div class="when">Current</div><div class="what"><strong>Postdoctoral Researcher – Xunta de Galicia Fellowship (ED481B-2025/103)</strong><span>CINBIO, University of Vigo, Spain</span></div></li>
-      <li><div class="when">Postdoc</div><div class="what"><strong>Postdoctoral Researcher – IN-ARMOR (HORIZON, 101080889)</strong><span>CINBIO, University of Vigo, Spain</span></div></li>
-      <li><div class="when">Postdoc stay</div><div class="what"><strong>Institute of Chemistry, Hebrew University of Jerusalem</strong><span>Group of Prof. Itamar Willner, Israel</span></div></li>
-      <li><div class="when">PhD</div><div class="what"><strong>PhD in Physics (MAP-fis)</strong><span>Centre of Physics, University of Minho, Portugal · FCT fellowship SFRH/BD/144017/2019</span></div></li>
-      <li><div class="when">2019</div><div class="what"><strong>MSc in Biophysics and Bionanosystems</strong><span>University of Minho, Portugal · Merit Scholarship</span></div></li>
-      <li><div class="when">2017</div><div class="what"><strong>BSc in Biochemistry</strong><span>University of Minho, Portugal · Excellence Scholarships</span></div></li>
-    </ul>
+</div></section>
+<section class="block"><div class="wrap">
+  <div class="eyebrow">Focus areas</div>
+  <h2>What I work on</h2>
+  <div class="grid">
+    <a class="card reveal" href="research.html#delivery"><div class="num">01</div><h3>Drug delivery &amp; theranostics</h3><p>Magnetic and plasmonic lipogels, peptide hydrogels and hybrid nanoparticles.</p></a>
+    <a class="card reveal" href="research.html#photo"><div class="num">02</div><h3>Photocatalytic microcapsules</h3><p>Hydrogel capsules coupled to photosystems for light-driven redox chemistry.</p></a>
+    <a class="card reveal" href="research.html#modelling"><div class="num">03</div><h3>Release modelling</h3><p>Reaction–diffusion theory linking material design to release kinetics.</p></a>
   </div>
-</section>
-
-<section id="contact">
-  <div class="wrap">
-    <h2>Contact</h2>
-    <p>CINBIO – Centro de Investigación Biomédica<br>Universidade de Vigo, Campus Universitario Lagoas-Marcosende<br>36310 Vigo, Spain</p>
-    <!-- Replace with your email -->
-    <p>Email: <a href="mailto:your.email@uvigo.gal">your.email@uvigo.gal</a></p>
-  </div>
-</section>
+</div></section>
 </main>
-
 <footer>
-  <div class="wrap">© <span id="yr"></span> Sérgio R. S. Veloso</div>
+  <div class="wrap">
+    <span>© <span id="yr"></span> Sérgio Rafael da Silva Veloso</span>
+    <span>CINBIO · Universidade de Vigo</span>
+  </div>
 </footer>
-<script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+<script src="script.js"></script>
+<script>
+(function(){
+  const c = document.getElementById("molecules"); if(!c) return;
+  const ctx = c.getContext("2d");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W, H, dpr, atoms = [], rings = [];
+  const GOLD = "217,180,90", ORANGE = "244,147,74", BLUE = "120,160,230";
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio||1, 2);
+    W = c.clientWidth; H = c.clientHeight;
+    c.width = W*dpr; c.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const n = Math.round(W*H/16000);
+    atoms = Array.from({length:n}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-.5)*.25, vy: (Math.random()-.5)*.25,
+      r: Math.random()<.12 ? 4+Math.random()*4 : 1.6+Math.random()*1.8,
+      col: Math.random()<.5 ? GOLD : (Math.random()<.5 ? ORANGE : BLUE)
+    }));
+    rings = Array.from({length: Math.max(4, Math.round(W/260))}, () => ({
+      x: W*(.35+Math.random()*.65), y: Math.random()*H,
+      s: 18+Math.random()*26, a: Math.random()*Math.PI,
+      va: (Math.random()-.5)*.003, vx:(Math.random()-.5)*.15, vy:(Math.random()-.5)*.15,
+      fused: Math.random()<.5
+    }));
+  }
+  function hex(x,y,s,a){
+    ctx.beginPath();
+    for(let i=0;i<6;i++){const t=a+i*Math.PI/3; const px=x+s*Math.cos(t), py=y+s*Math.sin(t); i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+    ctx.closePath(); ctx.stroke();
+    for(let i=0;i<6;i++){const t=a+i*Math.PI/3; ctx.beginPath(); ctx.arc(x+s*Math.cos(t), y+s*Math.sin(t), 2.2, 0, 7); ctx.fill();}
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    const max = 130;
+    for(let i=0;i<atoms.length;i++){
+      const a = atoms[i];
+      if(!reduce){ a.x+=a.vx; a.y+=a.vy; }
+      if(a.x<-20) a.x=W+20; if(a.x>W+20) a.x=-20; if(a.y<-20) a.y=H+20; if(a.y>H+20) a.y=-20;
+      for(let j=i+1;j<atoms.length;j++){
+        const b = atoms[j], d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<max){ ctx.strokeStyle=`rgba(${GOLD},${(1-d/max)*.28})`; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+      }
+    }
+    for(const a of atoms){
+      if(a.r>4){
+        const g = ctx.createRadialGradient(a.x,a.y,0,a.x,a.y,a.r*3.5);
+        g.addColorStop(0,`rgba(${a.col},.45)`); g.addColorStop(1,`rgba(${a.col},0)`);
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(a.x,a.y,a.r*3.5,0,7); ctx.fill();
+      }
+      ctx.fillStyle=`rgba(${a.col},.9)`; ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,7); ctx.fill();
+    }
+    ctx.lineWidth=1.4;
+    for(const r of rings){
+      if(!reduce){ r.a+=r.va; r.x+=r.vx; r.y+=r.vy; }
+      if(r.x<-60) r.x=W+60; if(r.x>W+60) r.x=-60; if(r.y<-60) r.y=H+60; if(r.y>H+60) r.y=-60;
+      ctx.strokeStyle=`rgba(${ORANGE},.55)`; ctx.fillStyle=`rgba(${GOLD},.85)`;
+      hex(r.x,r.y,r.s,r.a);
+      if(r.fused){ const t=r.a+Math.PI/6, d=r.s*Math.sqrt(3); hex(r.x+d*Math.cos(t), r.y+d*Math.sin(t), r.s, r.a); }
+    }
+    if(!reduce) requestAnimationFrame(frame);
+  }
+  addEventListener("resize", () => { resize(); if(reduce) frame(); });
+  resize(); frame();
+})();
+</script>
 </body>
 </html>
