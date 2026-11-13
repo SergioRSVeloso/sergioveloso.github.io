@@ -67,137 +67,132 @@
 </footer>
 <script src="script.js"></script>
 <script>
-// 3D scene (no libraries): a cancer cell, drug-loaded nanoparticles that are
-// activated by a light pulse and release drug that attacks the cell membrane.
+// Background: smart microcapsules that switch on when a light pulse passes,
+// capture drifting reactant molecules, convert them and release products.
 (function(){
-  const c=document.getElementById("molecules"); if(!c) return;
-  const ctx=c.getContext("2d");
-  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const GOLD=[241,207,118], ORANGE=[244,147,74], BLUE=[120,165,235], RED=[214,84,96], PINK=[205,120,170];
-  const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
-  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+  const c = document.getElementById("molecules"); if(!c) return;
+  const ctx = c.getContext("2d");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const GOLD="241,207,118", ORANGE="244,147,74", BLUE="120,165,235";
+  let W,H,caps=[],mols=[],flashes=[],t=0;
   const rnd=(a,b)=>a+Math.random()*(b-a);
-  let W,H,cx,cy,R,F,t=0, pts=[], nps=[], drugs=[], sparks=[], health=1, pulse=0;
 
-  // --- cell membrane: points on a lumpy sphere (Fibonacci sphere) ---
-  function bump(x,y,z){ return 1+.10*Math.sin(3*x+1.3)*Math.cos(4*y)+.07*Math.sin(5*z+2*x)+.05*Math.cos(7*y+3*z); }
-  function build(){
-    pts=[]; const N=W<700?380:620;
-    for(let i=0;i<N;i++){
-      const y=1-2*(i+.5)/N, r=Math.sqrt(1-y*y), th=i*2.39996;
-      const x=Math.cos(th)*r, z=Math.sin(th)*r, b=bump(x,y,z);
-      pts.push({x:x*b,y:y*b,z:z*b,nx:x,ny:y,nz:z,dmg:0, spike:Math.random()<.12});
-    }
-    nps=Array.from({length:W<700?7:11},(_,i)=>{
-      const a=rnd(0,6.28), e=rnd(-.9,.9), d=rnd(1.55,2.2);
-      return {a,e,d,va:rnd(.0025,.005)*(Math.random()<.5?1:-1),load:1,glow:0,x:0,y:0,z:0};
-    });
-    drugs=[]; sparks=[]; health=1;
-  }
   function resize(){
     const dpr=Math.min(devicePixelRatio||1,2);
-    W=c.clientWidth; H=c.clientHeight; c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    const small=W<700;
-    cx=small?W*.5:W*.78; cy=H*(small?.3:.5); R=Math.min(W,H)*(small?.2:.23); F=4.2;
-    build();
+    W=c.clientWidth; H=c.clientHeight;
+    c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const small = W<700;
+    const n = small?3:Math.max(4,Math.round(W/300));
+    caps=[];
+    for(let i=0;i<n;i++){
+      const r=small?rnd(38,55):rnd(55,85); let x,y,k=0;
+      do { x = small? rnd(W*.2,W*.85) : rnd(W*.5,W*.95); y = rnd(r+20,H-r-20); k++; }
+      while(k<60 && caps.some(o=>Math.hypot(o.x-x,o.y-y)<o.r+r+30));
+      caps.push({
+        x, y, r,
+        vx:rnd(-.08,.08), vy:rnd(-.08,.08), rot:rnd(0,6.3), act:0,
+        np:Array.from({length:5},()=>({a:rnd(0,6.3),d:rnd(.1,.55),s:rnd(3,5.5)})),
+        links:Array.from({length:14},()=>[rnd(0,6.3),rnd(0,6.3)])
+      });
+    }
+    mols=Array.from({length:Math.round(W*H/14000)},newMol);
   }
-  // rotation + perspective
-  let ry=0, rx=.35;
-  function rot(p){
-    const cyR=Math.cos(ry), syR=Math.sin(ry), cxR=Math.cos(rx), sxR=Math.sin(rx);
-    let x=p.x*cyR+p.z*syR, z=-p.x*syR+p.z*cyR, y=p.y;
-    const y2=y*cxR-z*sxR, z2=y*sxR+z*cxR; return [x,y2,z2];
+  function newMol(){
+    return {x:rnd(0,W),y:rnd(0,H),vx:rnd(-.35,.35),vy:rnd(-.35,.35),
+            a:rnd(0,6.3),va:rnd(-.02,.02),state:"reactant",timer:0,cap:null};
   }
-  function proj(x,y,z){ const s=F/(F-z); return [cx+x*R*s, cy+y*R*s, s]; }
+
+  function drawMol(m){
+    const col = m.state==="product"?GOLD:BLUE, alpha = m.state==="product"?.95:.8;
+    const L = m.state==="product"?9:7;
+    const x2=m.x+Math.cos(m.a)*L, y2=m.y+Math.sin(m.a)*L;
+    ctx.strokeStyle=`rgba(${col},${alpha*.7})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(x2,y2);
+    if(m.state==="product"){ const x3=m.x-Math.cos(m.a+1)*L, y3=m.y-Math.sin(m.a+1)*L; ctx.moveTo(m.x,m.y); ctx.lineTo(x3,y3);
+      ctx.fillStyle=`rgba(${col},${alpha})`; ctx.beginPath(); ctx.arc(x3,y3,2.4,0,7); ctx.fill(); }
+    ctx.stroke();
+    ctx.fillStyle=`rgba(${col},${alpha})`;
+    ctx.beginPath(); ctx.arc(m.x,m.y,3,0,7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x2,y2,2.4,0,7); ctx.fill();
+  }
+
+  function drawCap(cp){
+    const a=cp.act;
+    // glow when active
+    if(a>.02){
+      const g=ctx.createRadialGradient(cp.x,cp.y,cp.r*.2,cp.x,cp.y,cp.r*1.6);
+      g.addColorStop(0,`rgba(${ORANGE},${.22*a})`); g.addColorStop(1,`rgba(${ORANGE},0)`);
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cp.x,cp.y,cp.r*1.6,0,7); ctx.fill();
+    }
+    // inner polymer network
+    ctx.strokeStyle=`rgba(${GOLD},${.10+.15*a})`; ctx.lineWidth=1;
+    for(const [p,q] of cp.links){
+      ctx.beginPath();
+      ctx.moveTo(cp.x+Math.cos(p+cp.rot)*cp.r*.92, cp.y+Math.sin(p+cp.rot)*cp.r*.92);
+      ctx.quadraticCurveTo(cp.x,cp.y, cp.x+Math.cos(q+cp.rot)*cp.r*.92, cp.y+Math.sin(q+cp.rot)*cp.r*.92);
+      ctx.stroke();
+    }
+    // crosslinked shell (beads on a ring)
+    ctx.strokeStyle=`rgba(${GOLD},${.45+.4*a})`; ctx.lineWidth=1.6;
+    ctx.setLineDash([6,5]); ctx.lineDashOffset=-cp.rot*40;
+    ctx.beginPath(); ctx.arc(cp.x,cp.y,cp.r,0,7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=`rgba(${GOLD},${.6+.4*a})`;
+    for(let i=0;i<18;i++){ const th=cp.rot+i*Math.PI/9; ctx.beginPath(); ctx.arc(cp.x+Math.cos(th)*cp.r, cp.y+Math.sin(th)*cp.r,1.8,0,7); ctx.fill(); }
+    // catalytic nanoparticles
+    for(const n of cp.np){
+      const x=cp.x+Math.cos(n.a+cp.rot*.5)*cp.r*n.d, y=cp.y+Math.sin(n.a+cp.rot*.5)*cp.r*n.d;
+      const g=ctx.createRadialGradient(x,y,0,x,y,n.s*(2+2*a));
+      g.addColorStop(0,`rgba(${ORANGE},${.5+.5*a})`); g.addColorStop(1,`rgba(${ORANGE},0)`);
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,n.s*(2+2*a),0,7); ctx.fill();
+      ctx.fillStyle=`rgba(${ORANGE},.95)`; ctx.beginPath(); ctx.arc(x,y,n.s*.6,0,7); ctx.fill();
+    }
+  }
 
   function frame(){
-    t++; if(!reduce) ry+=.0025;
+    t++;
     ctx.clearRect(0,0,W,H);
-    // light pulse every ~7 s, comes from top-left
-    const cyc=420, ph=t%cyc;
-    pulse = ph<70 ? Math.sin(ph/70*Math.PI) : 0;
-    if(pulse>0){
-      const g=ctx.createLinearGradient(0,0,cx,cy);
-      g.addColorStop(0,rgba(GOLD,0)); g.addColorStop(1,rgba(GOLD,.10*pulse));
-      ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(cx-R*3.2,-50); ctx.lineTo(cx-R*.2,-50); ctx.lineTo(cx+R*2.6,H); ctx.lineTo(cx+R*.6,H); ctx.fill();
-    }
-    // soft cell body
-    const sick=1-health;
-    const body=ctx.createRadialGradient(cx-R*.3,cy-R*.35,R*.1,cx,cy,R*1.15);
-    body.addColorStop(0,rgba(mix(PINK,ORANGE,sick),.30)); body.addColorStop(.7,rgba(mix([60,70,140],RED,sick*.5),.22)); body.addColorStop(1,rgba([20,30,70],0));
-    ctx.fillStyle=body; ctx.beginPath(); ctx.arc(cx,cy,R*1.15,0,7); ctx.fill();
+    // sweeping light pulse ("when"): a soft vertical band moving left→right
+    const period=900, lx=((t%period)/period)*(W+400)-200;
+    const lg=ctx.createLinearGradient(lx-160,0,lx+160,0);
+    lg.addColorStop(0,`rgba(${GOLD},0)`); lg.addColorStop(.5,`rgba(${GOLD},.07)`); lg.addColorStop(1,`rgba(${GOLD},0)`);
+    ctx.fillStyle=lg; ctx.fillRect(lx-160,0,320,H);
 
-    const items=[];
-    // nucleus
-    { const [x,y,z]=rot({x:.15,y:-.05,z:.1}); const [px,py,s]=proj(x,y,z);
-      items.push({z,draw:()=>{ const g=ctx.createRadialGradient(px,py,0,px,py,R*.42*s);
-        g.addColorStop(0,rgba(mix(BLUE,RED,sick),.55)); g.addColorStop(1,rgba(BLUE,0));
-        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,R*.42*s,0,7); ctx.fill(); }}); }
-    // membrane points
-    const light=[-.5,-.6,.62];
-    for(const p of pts){
-      const breathe=1+.015*Math.sin(t*.03+p.ny*4) - .05*sick;
-      const [x,y,z]=rot({x:p.x*breathe,y:p.y*breathe,z:p.z*breathe});
-      const [nx,ny,nz]=rot({x:p.nx,y:p.ny,z:p.nz});
-      const [px,py,s]=proj(x,y,z);
-      const lam=Math.max(0,nx*light[0]+ny*light[1]+nz*light[2]);
-      const depth=(z+1.2)/2.4;
-      p.dmg=Math.max(0,p.dmg-.0006);
-      const col=mix(mix([150,110,190],ORANGE,.25+.5*lam),RED,p.dmg);
-      const a=(.15+.75*depth)*(.5+.5*lam);
-      items.push({z,draw:()=>{
-        ctx.fillStyle=rgba(col,a); ctx.beginPath(); ctx.arc(px,py,(1.4+1.8*depth)*s,0,7); ctx.fill();
-        if(p.spike&&z>-.2){ const [qx,qy]=proj(x+nx*.12,y+ny*.12,z+nz*.12);
-          ctx.strokeStyle=rgba(GOLD,a*.7); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(qx,qy); ctx.stroke();
-          ctx.fillStyle=rgba(GOLD,a); ctx.beginPath(); ctx.arc(qx,qy,1.6*s,0,7); ctx.fill(); }
-        if(p.dmg>.25){ ctx.fillStyle=rgba(RED,p.dmg*.25*depth); ctx.beginPath(); ctx.arc(px,py,7*s*p.dmg,0,7); ctx.fill(); }
-      }});
+    for(const cp of caps){
+      if(!reduce){ cp.x+=cp.vx; cp.y+=cp.vy; cp.rot+=.002; }
+      if(cp.x<cp.r||cp.x>W-cp.r) cp.vx*=-1;
+      if(cp.y<cp.r||cp.y>H-cp.r) cp.vy*=-1;
+      for(const o of caps){ if(o!==cp && Math.hypot(o.x-cp.x,o.y-cp.y)<o.r+cp.r+10){ cp.vx*=-1; cp.vy*=-1; break; } }
+      const near=Math.max(0,1-Math.abs(cp.x-lx)/220);
+      cp.act += ((reduce?.6:near) - cp.act)*.05;   // switch on when lit
+      drawCap(cp);
     }
-    // nanoparticles
-    for(const n of nps){
-      if(!reduce) n.a+=n.va;
-      n.x=Math.cos(n.a)*Math.cos(n.e)*n.d; n.y=Math.sin(n.e)*n.d*.8; n.z=Math.sin(n.a)*Math.cos(n.e)*n.d;
-      const [x,y,z]=rot(n); const [px,py,s]=proj(x,y,z);
-      if(pulse>.6 && n.load>0 && !reduce){            // light triggers release
-        n.glow=1;
-        for(let k=0;k<3;k++){ drugs.push({x:n.x,y:n.y,z:n.z,v:rnd(.012,.02),w:{x:rnd(-.3,.3),y:rnd(-.3,.3),z:rnd(-.3,.3)}}); }
-        n.load=Math.max(0,n.load-.05);
+
+    for(const m of mols){
+      if(reduce){ drawMol(m); continue; }
+      if(m.state==="inside"){
+        const cp=m.cap; m.timer++;
+        m.x+= (cp.x-m.x)*.02 + Math.cos(m.timer*.2)*.3; m.y+=(cp.y-m.y)*.02 + Math.sin(m.timer*.2)*.3;
+        if(m.timer>60 && cp.act>.35){           // reaction happens only where AND when active
+          m.state="product"; flashes.push({x:m.x,y:m.y,r:4,a:1});
+          const th=rnd(0,6.3); m.vx=Math.cos(th)*.9; m.vy=Math.sin(th)*.9;
+        }
+      } else {
+        m.x+=m.vx; m.y+=m.vy; m.a+=m.va;
+        if(m.state==="product"){ m.vx*=.995; m.vy*=.995; m.timer++; if(m.timer>900){ Object.assign(m,newMol(),{x:-10}); } }
+        if(m.x<-15) m.x=W+15; if(m.x>W+15) m.x=-15; if(m.y<-15) m.y=H+15; if(m.y>H+15) m.y=-15;
+        if(m.state==="reactant") for(const cp of caps){
+          if(Math.hypot(m.x-cp.x,m.y-cp.y)<cp.r*.9 && cp.act>.15){ m.state="inside"; m.cap=cp; m.timer=0; break; }
+        }
       }
-      n.glow*=.97; if(ph===cyc-1) n.load=1;
-      items.push({z,draw:()=>{
-        const r=(5+3*n.load)*s, gr=r*(2.5+4*n.glow);
-        const g=ctx.createRadialGradient(px,py,0,px,py,gr);
-        g.addColorStop(0,rgba(mix(ORANGE,GOLD,n.glow),.5+.4*n.glow)); g.addColorStop(1,rgba(ORANGE,0));
-        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,gr,0,7); ctx.fill();
-        const b=ctx.createRadialGradient(px-r*.35,py-r*.35,0,px,py,r);
-        b.addColorStop(0,rgba([255,240,200],1)); b.addColorStop(.5,rgba(GOLD,1)); b.addColorStop(1,rgba(ORANGE,.9));
-        ctx.fillStyle=b; ctx.beginPath(); ctx.arc(px,py,r,0,7); ctx.fill();
-        // PEG corona
-        ctx.strokeStyle=rgba(GOLD,.35); ctx.lineWidth=1;
-        for(let k=0;k<8;k++){ const th=k*Math.PI/4+t*.01; ctx.beginPath(); ctx.moveTo(px+Math.cos(th)*r,py+Math.sin(th)*r); ctx.lineTo(px+Math.cos(th)*r*1.6,py+Math.sin(th)*r*1.6); ctx.stroke(); }
-      }});
+      drawMol(m);
     }
-    // drug molecules travel to the membrane
-    for(let i=drugs.length-1;i>=0;i--){
-      const d=drugs[i]; const L=Math.hypot(d.x,d.y,d.z);
-      d.x+=(-d.x/L+d.w.x)*d.v; d.y+=(-d.y/L+d.w.y)*d.v; d.z+=(-d.z/L+d.w.z)*d.v; d.w.x*=.98; d.w.y*=.98; d.w.z*=.98;
-      if(L<1.05){
-        let best=null,bd=9; for(const p of pts){ const q=(p.x-d.x)**2+(p.y-d.y)**2+(p.z-d.z)**2; if(q<bd){bd=q;best=p;} }
-        for(const p of pts){ if((p.x-best.x)**2+(p.y-best.y)**2+(p.z-best.z)**2<.04) p.dmg=Math.min(1,p.dmg+.35); }
-        sparks.push({x:d.x,y:d.y,z:d.z,a:1}); health=Math.max(.35,health-.006); drugs.splice(i,1); continue;
-      }
-      const [x,y,z]=rot(d); const [px,py,s]=proj(x,y,z);
-      items.push({z,draw:()=>{ ctx.fillStyle=rgba(GOLD,.95); ctx.beginPath(); ctx.arc(px,py,2.2*s,0,7); ctx.fill();
-        ctx.fillStyle=rgba(GOLD,.25); ctx.beginPath(); ctx.arc(px,py,5*s,0,7); ctx.fill(); }});
+
+    for(let i=flashes.length-1;i>=0;i--){
+      const f=flashes[i]; f.r+=1.4; f.a-=.03;
+      if(f.a<=0){ flashes.splice(i,1); continue; }
+      ctx.strokeStyle=`rgba(${GOLD},${f.a})`; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.stroke();
     }
-    for(let i=sparks.length-1;i>=0;i--){
-      const sp=sparks[i]; sp.a-=.03; if(sp.a<=0){sparks.splice(i,1);continue;}
-      const [x,y,z]=rot(sp); const [px,py,s]=proj(x,y,z);
-      items.push({z:z+.01,draw:()=>{ ctx.strokeStyle=rgba(RED,sp.a); ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px,py,(1-sp.a)*16*s+2,0,7); ctx.stroke(); }});
-    }
-    // slow recovery so the loop never ends
-    if(drugs.length===0) health=Math.min(1,health+.0008);
-    items.sort((a,b)=>a.z-b.z); for(const it of items) it.draw();
     if(!reduce) requestAnimationFrame(frame);
   }
   addEventListener("resize",()=>{ resize(); if(reduce) frame(); });
