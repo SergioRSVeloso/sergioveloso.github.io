@@ -67,67 +67,135 @@
 </footer>
 <script src="script.js"></script>
 <script>
+// Background: smart microcapsules that switch on when a light pulse passes,
+// capture drifting reactant molecules, convert them and release products.
 (function(){
   const c = document.getElementById("molecules"); if(!c) return;
   const ctx = c.getContext("2d");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let W, H, dpr, atoms = [], rings = [];
-  const GOLD = "217,180,90", ORANGE = "244,147,74", BLUE = "120,160,230";
+  const GOLD="241,207,118", ORANGE="244,147,74", BLUE="120,165,235";
+  let W,H,caps=[],mols=[],flashes=[],t=0;
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+
   function resize(){
-    dpr = Math.min(window.devicePixelRatio||1, 2);
-    W = c.clientWidth; H = c.clientHeight;
-    c.width = W*dpr; c.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    const n = Math.round(W*H/16000);
-    atoms = Array.from({length:n}, () => ({
-      x: Math.random()*W, y: Math.random()*H,
-      vx: (Math.random()-.5)*.25, vy: (Math.random()-.5)*.25,
-      r: Math.random()<.12 ? 4+Math.random()*4 : 1.6+Math.random()*1.8,
-      col: Math.random()<.5 ? GOLD : (Math.random()<.5 ? ORANGE : BLUE)
-    }));
-    rings = Array.from({length: Math.max(4, Math.round(W/260))}, () => ({
-      x: W*(.35+Math.random()*.65), y: Math.random()*H,
-      s: 18+Math.random()*26, a: Math.random()*Math.PI,
-      va: (Math.random()-.5)*.003, vx:(Math.random()-.5)*.15, vy:(Math.random()-.5)*.15,
-      fused: Math.random()<.5
-    }));
+    const dpr=Math.min(devicePixelRatio||1,2);
+    W=c.clientWidth; H=c.clientHeight;
+    c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const small = W<700;
+    const n = small?3:Math.max(4,Math.round(W/300));
+    caps=[];
+    for(let i=0;i<n;i++){
+      const r=small?rnd(38,55):rnd(55,85); let x,y,k=0;
+      do { x = small? rnd(W*.2,W*.85) : rnd(W*.5,W*.95); y = rnd(r+20,H-r-20); k++; }
+      while(k<60 && caps.some(o=>Math.hypot(o.x-x,o.y-y)<o.r+r+30));
+      caps.push({
+        x, y, r,
+        vx:rnd(-.08,.08), vy:rnd(-.08,.08), rot:rnd(0,6.3), act:0,
+        np:Array.from({length:5},()=>({a:rnd(0,6.3),d:rnd(.1,.55),s:rnd(3,5.5)})),
+        links:Array.from({length:14},()=>[rnd(0,6.3),rnd(0,6.3)])
+      });
+    }
+    mols=Array.from({length:Math.round(W*H/14000)},newMol);
   }
-  function hex(x,y,s,a){
-    ctx.beginPath();
-    for(let i=0;i<6;i++){const t=a+i*Math.PI/3; const px=x+s*Math.cos(t), py=y+s*Math.sin(t); i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
-    ctx.closePath(); ctx.stroke();
-    for(let i=0;i<6;i++){const t=a+i*Math.PI/3; ctx.beginPath(); ctx.arc(x+s*Math.cos(t), y+s*Math.sin(t), 2.2, 0, 7); ctx.fill();}
+  function newMol(){
+    return {x:rnd(0,W),y:rnd(0,H),vx:rnd(-.35,.35),vy:rnd(-.35,.35),
+            a:rnd(0,6.3),va:rnd(-.02,.02),state:"reactant",timer:0,cap:null};
   }
+
+  function drawMol(m){
+    const col = m.state==="product"?GOLD:BLUE, alpha = m.state==="product"?.95:.8;
+    const L = m.state==="product"?9:7;
+    const x2=m.x+Math.cos(m.a)*L, y2=m.y+Math.sin(m.a)*L;
+    ctx.strokeStyle=`rgba(${col},${alpha*.7})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(x2,y2);
+    if(m.state==="product"){ const x3=m.x-Math.cos(m.a+1)*L, y3=m.y-Math.sin(m.a+1)*L; ctx.moveTo(m.x,m.y); ctx.lineTo(x3,y3);
+      ctx.fillStyle=`rgba(${col},${alpha})`; ctx.beginPath(); ctx.arc(x3,y3,2.4,0,7); ctx.fill(); }
+    ctx.stroke();
+    ctx.fillStyle=`rgba(${col},${alpha})`;
+    ctx.beginPath(); ctx.arc(m.x,m.y,3,0,7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x2,y2,2.4,0,7); ctx.fill();
+  }
+
+  function drawCap(cp){
+    const a=cp.act;
+    // glow when active
+    if(a>.02){
+      const g=ctx.createRadialGradient(cp.x,cp.y,cp.r*.2,cp.x,cp.y,cp.r*1.6);
+      g.addColorStop(0,`rgba(${ORANGE},${.22*a})`); g.addColorStop(1,`rgba(${ORANGE},0)`);
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cp.x,cp.y,cp.r*1.6,0,7); ctx.fill();
+    }
+    // inner polymer network
+    ctx.strokeStyle=`rgba(${GOLD},${.10+.15*a})`; ctx.lineWidth=1;
+    for(const [p,q] of cp.links){
+      ctx.beginPath();
+      ctx.moveTo(cp.x+Math.cos(p+cp.rot)*cp.r*.92, cp.y+Math.sin(p+cp.rot)*cp.r*.92);
+      ctx.quadraticCurveTo(cp.x,cp.y, cp.x+Math.cos(q+cp.rot)*cp.r*.92, cp.y+Math.sin(q+cp.rot)*cp.r*.92);
+      ctx.stroke();
+    }
+    // crosslinked shell (beads on a ring)
+    ctx.strokeStyle=`rgba(${GOLD},${.45+.4*a})`; ctx.lineWidth=1.6;
+    ctx.setLineDash([6,5]); ctx.lineDashOffset=-cp.rot*40;
+    ctx.beginPath(); ctx.arc(cp.x,cp.y,cp.r,0,7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=`rgba(${GOLD},${.6+.4*a})`;
+    for(let i=0;i<18;i++){ const th=cp.rot+i*Math.PI/9; ctx.beginPath(); ctx.arc(cp.x+Math.cos(th)*cp.r, cp.y+Math.sin(th)*cp.r,1.8,0,7); ctx.fill(); }
+    // catalytic nanoparticles
+    for(const n of cp.np){
+      const x=cp.x+Math.cos(n.a+cp.rot*.5)*cp.r*n.d, y=cp.y+Math.sin(n.a+cp.rot*.5)*cp.r*n.d;
+      const g=ctx.createRadialGradient(x,y,0,x,y,n.s*(2+2*a));
+      g.addColorStop(0,`rgba(${ORANGE},${.5+.5*a})`); g.addColorStop(1,`rgba(${ORANGE},0)`);
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,n.s*(2+2*a),0,7); ctx.fill();
+      ctx.fillStyle=`rgba(${ORANGE},.95)`; ctx.beginPath(); ctx.arc(x,y,n.s*.6,0,7); ctx.fill();
+    }
+  }
+
   function frame(){
+    t++;
     ctx.clearRect(0,0,W,H);
-    const max = 130;
-    for(let i=0;i<atoms.length;i++){
-      const a = atoms[i];
-      if(!reduce){ a.x+=a.vx; a.y+=a.vy; }
-      if(a.x<-20) a.x=W+20; if(a.x>W+20) a.x=-20; if(a.y<-20) a.y=H+20; if(a.y>H+20) a.y=-20;
-      for(let j=i+1;j<atoms.length;j++){
-        const b = atoms[j], d=Math.hypot(a.x-b.x,a.y-b.y);
-        if(d<max){ ctx.strokeStyle=`rgba(${GOLD},${(1-d/max)*.28})`; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
-      }
+    // sweeping light pulse ("when"): a soft vertical band moving left→right
+    const period=900, lx=((t%period)/period)*(W+400)-200;
+    const lg=ctx.createLinearGradient(lx-160,0,lx+160,0);
+    lg.addColorStop(0,`rgba(${GOLD},0)`); lg.addColorStop(.5,`rgba(${GOLD},.07)`); lg.addColorStop(1,`rgba(${GOLD},0)`);
+    ctx.fillStyle=lg; ctx.fillRect(lx-160,0,320,H);
+
+    for(const cp of caps){
+      if(!reduce){ cp.x+=cp.vx; cp.y+=cp.vy; cp.rot+=.002; }
+      if(cp.x<cp.r||cp.x>W-cp.r) cp.vx*=-1;
+      if(cp.y<cp.r||cp.y>H-cp.r) cp.vy*=-1;
+      for(const o of caps){ if(o!==cp && Math.hypot(o.x-cp.x,o.y-cp.y)<o.r+cp.r+10){ cp.vx*=-1; cp.vy*=-1; break; } }
+      const near=Math.max(0,1-Math.abs(cp.x-lx)/220);
+      cp.act += ((reduce?.6:near) - cp.act)*.05;   // switch on when lit
+      drawCap(cp);
     }
-    for(const a of atoms){
-      if(a.r>4){
-        const g = ctx.createRadialGradient(a.x,a.y,0,a.x,a.y,a.r*3.5);
-        g.addColorStop(0,`rgba(${a.col},.45)`); g.addColorStop(1,`rgba(${a.col},0)`);
-        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(a.x,a.y,a.r*3.5,0,7); ctx.fill();
+
+    for(const m of mols){
+      if(reduce){ drawMol(m); continue; }
+      if(m.state==="inside"){
+        const cp=m.cap; m.timer++;
+        m.x+= (cp.x-m.x)*.02 + Math.cos(m.timer*.2)*.3; m.y+=(cp.y-m.y)*.02 + Math.sin(m.timer*.2)*.3;
+        if(m.timer>60 && cp.act>.35){           // reaction happens only where AND when active
+          m.state="product"; flashes.push({x:m.x,y:m.y,r:4,a:1});
+          const th=rnd(0,6.3); m.vx=Math.cos(th)*.9; m.vy=Math.sin(th)*.9;
+        }
+      } else {
+        m.x+=m.vx; m.y+=m.vy; m.a+=m.va;
+        if(m.state==="product"){ m.vx*=.995; m.vy*=.995; m.timer++; if(m.timer>900){ Object.assign(m,newMol(),{x:-10}); } }
+        if(m.x<-15) m.x=W+15; if(m.x>W+15) m.x=-15; if(m.y<-15) m.y=H+15; if(m.y>H+15) m.y=-15;
+        if(m.state==="reactant") for(const cp of caps){
+          if(Math.hypot(m.x-cp.x,m.y-cp.y)<cp.r*.9 && cp.act>.15){ m.state="inside"; m.cap=cp; m.timer=0; break; }
+        }
       }
-      ctx.fillStyle=`rgba(${a.col},.9)`; ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,7); ctx.fill();
+      drawMol(m);
     }
-    ctx.lineWidth=1.4;
-    for(const r of rings){
-      if(!reduce){ r.a+=r.va; r.x+=r.vx; r.y+=r.vy; }
-      if(r.x<-60) r.x=W+60; if(r.x>W+60) r.x=-60; if(r.y<-60) r.y=H+60; if(r.y>H+60) r.y=-60;
-      ctx.strokeStyle=`rgba(${ORANGE},.55)`; ctx.fillStyle=`rgba(${GOLD},.85)`;
-      hex(r.x,r.y,r.s,r.a);
-      if(r.fused){ const t=r.a+Math.PI/6, d=r.s*Math.sqrt(3); hex(r.x+d*Math.cos(t), r.y+d*Math.sin(t), r.s, r.a); }
+
+    for(let i=flashes.length-1;i>=0;i--){
+      const f=flashes[i]; f.r+=1.4; f.a-=.03;
+      if(f.a<=0){ flashes.splice(i,1); continue; }
+      ctx.strokeStyle=`rgba(${GOLD},${f.a})`; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.stroke();
     }
     if(!reduce) requestAnimationFrame(frame);
   }
-  addEventListener("resize", () => { resize(); if(reduce) frame(); });
+  addEventListener("resize",()=>{ resize(); if(reduce) frame(); });
   resize(); frame();
 })();
 </script>
